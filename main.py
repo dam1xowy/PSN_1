@@ -18,7 +18,7 @@ mlp_xor = MLPClassifier(
 mlp_xor.fit(X_xor, y_xor) 
 y_xor_pred = mlp_xor.predict(X_xor) 
 
-print("=== CZĘŚĆ 1: PROBLEM XOR ===")
+print("XOR")
 for wejscie, cel, predykcja in zip(X_xor, y_xor, y_xor_pred):
     print(f"Wejście: {wejscie} | Oczekiwane: {cel} | Predykcja sieci: {predykcja}")
 print(f"Dokładność XOR: {accuracy_score(y_xor, y_xor_pred) * 100:.2f}%\n")
