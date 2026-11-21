@@ -30,7 +30,7 @@ y_train_f = y_train.astype(np.float32)
 y_test_f = y_test.astype(np.float32)
 
 class DiagnosticsCallback(callbacks.Callback):
-    def __init__(self, X_tr, y_tr, X_te, y_te, target_mse=0.0055):
+    def __init__(self, X_tr, y_tr, X_te, y_te, target_mse=0.004):
         super().__init__()
         self.X_tr = tf.constant(X_tr)
         self.y_tr = tf.constant(y_tr.reshape(-1, 1))
