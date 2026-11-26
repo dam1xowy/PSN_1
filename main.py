@@ -129,7 +129,7 @@ y_pred = (mlp.predict(X_test_scaled, verbose=0).flatten() >= 0.5).astype(int)
 
 print(f"Dokładność modelu (Test): {accuracy_score(y_test, y_pred) * 100:.2f}%")
 print("Raport klasyfikacji:")
-print(classification_report(y_test, y_pred, target_names=data.target_names))
+print(classification_report(y_test, y_pred, target_names=data.target_names, digits=4))
 
 
 hist = diag_cb.history
@@ -210,11 +210,14 @@ plt.savefig(os.path.join(PLOTS_DIR, '4_macierz_pomylek.png'), dpi=300)
 plt.close()
 
 fig, axes = plt.subplots(1, 3, figsize=(16, 4.5))
+epochs_exp = range(1, 101)
 
 for mom in [0.0, 0.5, 0.9]:
+    tf.random.set_seed(47)
+    np.random.seed(47)
     m = build_mlp(lr=0.05, momentum=mom)
     h = m.fit(X_train_scaled, y_train_f, epochs=100, batch_size=32, verbose=0)
-    axes[0].plot(h.history['loss'], label=f'Momentum = {mom}')
+    axes[0].plot(epochs_exp, h.history['loss'], label=f'Momentum = {mom}')
 axes[0].set_title('Wpływ Momentum na spadek MSE')
 axes[0].set_xlabel('Epoka')
 axes[0].set_ylabel('MSE')
@@ -222,10 +225,12 @@ axes[0].legend()
 axes[0].grid(True)
 
 for bs in [1, 32, len(X_train_scaled)]:
-    label_bs = f'Batch = {bs}' if bs != len(X_train_scaled) else 'Full Batch (455)'
+    tf.random.set_seed(47)
+    np.random.seed(47)
+    label_bs = f'Batch = {bs}' if bs != len(X_train_scaled) else f'Full Batch ({len(X_train_scaled)})'
     m = build_mlp(lr=0.05, momentum=0.9)
     h = m.fit(X_train_scaled, y_train_f, epochs=100, batch_size=bs, verbose=0)
-    axes[1].plot(h.history['loss'], label=label_bs)
+    axes[1].plot(epochs_exp, h.history['loss'], label=label_bs)
 axes[1].set_title('Wpływ rozmiaru Mini-Batch na uczenie')
 axes[1].set_xlabel('Epoka')
 axes[1].set_ylabel('MSE')
@@ -233,9 +238,11 @@ axes[1].legend()
 axes[1].grid(True)
 
 for lr_val in [0.005, 0.05, 0.3]:
+    tf.random.set_seed(47)
+    np.random.seed(47)
     m = build_mlp(lr=lr_val, momentum=0.5)
     h = m.fit(X_train_scaled, y_train_f, epochs=100, batch_size=32, verbose=0)
-    axes[2].plot(h.history['loss'], label=f'LR = {lr_val}')
+    axes[2].plot(epochs_exp, h.history['loss'], label=f'LR = {lr_val}')
 axes[2].set_title('Wpływ Learning Rate na zbieżność')
 axes[2].set_xlabel('Epoka')
 axes[2].set_ylabel('MSE')
@@ -247,9 +254,12 @@ plt.savefig(os.path.join(PLOTS_DIR, '5_zaleznosc_od_parametrow.png'), dpi=300)
 plt.close()
 
 report = classification_report(y_test, y_pred, target_names=data.target_names, output_dict=True)
-df = pd.DataFrame(report).transpose().round(2).astype(object)
+df = pd.DataFrame(report).transpose().astype(object)
+for col in ['precision', 'recall', 'f1-score']:
+    df[col] = df[col].apply(lambda v: f'{v * 100:.2f}%')
 df.loc['accuracy', ['precision', 'recall']] = '-'
-df['support'] = [44, 70, 114, 114, 114]
+df.loc['accuracy', 'support'] = len(y_test)
+df['support'] = df['support'].astype(float).astype(int)
 
 fig, ax = plt.subplots(figsize=(8, 3))
 ax.axis('tight')
